@@ -44,7 +44,7 @@ class LLMReasonerNode(Node):
 
     def command_callback(self, msg):
         user_command = msg.data
-        self.get_logger().info(f'📥 Instruction received: "{user_command}"')
+        self.get_logger().info(f'[### Speech Recieve] Instruction received: "{user_command}"')
 
         # 將方向對應表寫入 Prompt
         system_context = f"""
@@ -157,7 +157,7 @@ class LLMReasonerNode(Node):
         Output Example 2 (Navigation):
         - **Multi-Goal Format**: If the user command involves multiple destinations or a sequence of tasks, 
         separate each "ID,Angle" with a semicolon (;).
-        Example: "door_1,180;lab_213,90"
+        Example: "door_1,180;door_2,90"
         好的，那我現在先帶你去實驗室 214，在帶你去實驗室 213。
 
         Output Example 3 (Chatting):
@@ -168,7 +168,6 @@ class LLMReasonerNode(Node):
 
         - Return "None" if no matching instance is found.
         """
-        # - 若指令未指定方向，去房間預設為 180，去走廊預設為 -90。
         try:
             # 準備當前的對話上下文
             # 將 system_context 放在第一筆對話或作為 instruction
@@ -188,7 +187,7 @@ class LLMReasonerNode(Node):
             )
             
             full_response = response.text.strip()
-            self.get_logger().info(f'🤖 AI 回應內容:\n{full_response}')
+            self.get_logger().info(f'[### AI Response] AI 回應內容:\n{full_response}')
 
             # --- 解析回應內容 ---
             lines = full_response.split('\n')
@@ -206,14 +205,14 @@ class LLMReasonerNode(Node):
                 result_msg = String()
                 result_msg.data = nav_data
                 self.publisher_.publish(result_msg)
-                self.get_logger().info(f'🎯 發布導航目標: {nav_data}')
+                self.get_logger().info(f'[### Navigation Pose] 發布導航目標: {nav_data}')
 
             # 2. 發布語音回覆給 TTS
             if spoken_text:
                 tts_msg = String()
                 tts_msg.data = spoken_text
                 self.tts_publisher.publish(tts_msg)
-                self.get_logger().info(f'📢 發布語音回饋: {spoken_text}')
+                self.get_logger().info(f'[### Speech Responses] 發布語音回饋: {spoken_text}')
 
             # 3. 更新對話記憶 (只保留最近 10 次對話，避免 Token 過長)
             self.chat_history.append(user_msg)
